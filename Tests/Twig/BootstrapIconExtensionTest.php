@@ -59,6 +59,11 @@ class BootstrapIconExtensionTest extends \PHPUnit_Framework_TestCase
             $this->getIconExtension('fa')->iconFunction('heart'),
             '->iconFunction() uses the iconPrefix passed into the IconExtension constructor.'
         );
+        $this->assertEquals(
+            '<span class="si si-github"></span>',
+            $this->getIconExtension('fa')->iconFunction('github', 'si'),
+            "->iconFunction()'s second parameter allows overriding the icon prefix."
+        );
     }
 
     /**

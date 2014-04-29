@@ -82,13 +82,16 @@ class BootstrapIconExtension extends Twig_Extension
     /**
      * Returns the HTML code for the given icon.
      *
-     * @param string $icon  The name of the icon
+     * @param string $icon           The name of the icon
+     * @param string $prefixOverride Overrides the prefix set in the config if present
      *
      * @return string The HTML code for the icon
      */
-    public function iconFunction($icon)
+    public function iconFunction($icon, $prefixOverride = null)
     {
-        return sprintf('<span class="%1$s %1$s-%2$s"></span>', $this->iconPrefix, $icon);
+        $prefix = ($prefixOverride) ?: $this->iconPrefix;
+
+        return sprintf('<span class="%1$s %1$s-%2$s"></span>', $prefix, $icon);
     }
 
     /**
