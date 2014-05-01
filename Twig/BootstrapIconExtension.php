@@ -6,6 +6,9 @@
 
 namespace Braincrafted\Bundle\BootstrapBundle\Twig;
 
+use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Twig_Extension;
 use Twig_Filter_Method;
 use Twig_Function_Method;
@@ -23,13 +26,23 @@ use Twig_Function_Method;
 class BootstrapIconExtension extends Twig_Extension
 {
     /**
-     * @var string
+     * @var \Symfony\Bundle\FrameworkBundle\Templating\EngineInterface
      */
-    private $iconPrefix;
+    private $templating;
 
-    public function __construct($iconPrefix)
-    {
-        $this->iconPrefix = $iconPrefix;
+    /**
+     * @var array
+     */
+    private $options;
+
+    public function __construct(
+        EngineInterface $templating,
+        array $options = array()
+    ) {
+        $this->templating = $templating;
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->options = $resolver->resolve($options);
     }
 
     /**
@@ -51,13 +64,27 @@ class BootstrapIconExtension extends Twig_Extension
      */
     public function getFunctions()
     {
-        return array(
+        $functions = array(
             'icon' => new Twig_Function_Method(
                 $this,
                 'iconFunction',
                 array('pre_escape' => 'html', 'is_safe' => array('html'))
             )
         );
+        if (true === $this->options['icon_short_methods_enable']) {
+            $functions['fa'] = new Twig_Function_Method(
+                $this,
+                'fontAwesomeIconFunction',
+                array('pre_escape' => 'html', 'is_safe' => array('html'))
+            );
+            $functions['gi'] = new Twig_Function_Method(
+                $this,
+                'glyphIconFunction',
+                array('pre_escape' => 'html', 'is_safe' => array('html'))
+            );
+        }
+
+        return $functions;
     }
 
     /**
@@ -82,16 +109,57 @@ class BootstrapIconExtension extends Twig_Extension
     /**
      * Returns the HTML code for the given icon.
      *
-     * @param string $icon           The name of the icon
-     * @param string $prefixOverride Overrides the prefix set in the config if present
+     * @param string       $icon The name of the icon
+     * @param string|array $addClass
+     * @param string       $prefixOverride Overrides the prefix set in the config if present
      *
      * @return string The HTML code for the icon
      */
-    public function iconFunction($icon, $prefixOverride = null)
+    public function iconFunction($icon, $addClass = '', $prefixOverride = null)
     {
-        $prefix = ($prefixOverride) ?: $this->iconPrefix;
+        $prefix   = (null === $prefixOverride)
+            ? $this->options['icon_prefix']
+            : $prefixOverride ;
+        $addClass = is_array($addClass) ? implode(' ', $addClass) : $addClass;
 
-        return sprintf('<span class="%1$s %1$s-%2$s"></span>', $prefix, $icon);
+        return $this->templating->render(
+            $this->options['icon_template'],
+            array('icon' => $icon, 'prefix' => $prefix, 'add_class' => $addClass)
+        );
+    }
+
+    /**
+     * Shorthand for generating font-awesome icons
+     *
+     * @param string       $icon
+     * @param string|array $addClass
+     *
+     * @return string The HTML for the icon
+     */
+    public function fontAwesomeIconFunction($icon, $addClass = '')
+    {
+        return $this->iconFunction(
+            $icon,
+            $addClass,
+            $this->options['icon_short_methods_fontawesome_prefix']
+        );
+    }
+
+    /**
+     * Shorthand for generating Glyphicon icons
+     *
+     * @param string       $icon
+     * @param string|array $addClass
+     *
+     * @return string The HTML for the icon
+     */
+    public function glyphIconFunction($icon, $addClass = '')
+    {
+        return $this->iconFunction(
+            $icon,
+            $addClass,
+            $this->options['icon_short_methods_glyphicon_prefix']
+        );
     }
 
     /**
@@ -100,5 +168,16 @@ class BootstrapIconExtension extends Twig_Extension
     public function getName()
     {
         return 'braincrafted_bootstrap_icon';
+    }
+
+    private function configureOptions(OptionsResolverInterface $resolver)
+    {
+        $resolver->setRequired(array(
+            'icon_prefix',
+            'icon_template',
+            'icon_short_methods_enable',
+            'icon_short_methods_fontawesome_prefix',
+            'icon_short_methods_glyphicon_prefix'
+        ));
     }
 }

@@ -13,8 +13,6 @@ use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
-use Braincrafted\Bundle\BootstrapBundle\DependencyInjection\AsseticConfiguration;
-
 /**
  * BraincraftedBootstrapExtension
  *
@@ -59,6 +57,13 @@ class BraincraftedBootstrapExtension extends Extension implements PrependExtensi
         $container->setParameter('braincrafted_bootstrap.output_dir', $config['output_dir']);
         $container->setParameter('braincrafted_bootstrap.less_filter', $config['less_filter']);
         $container->setParameter('braincrafted_bootstrap.icon_prefix', $config['icon_prefix']);
+        $container->setParameter('braincrafted_bootstrap.icon_options', array(
+            'icon_prefix'                           => $config['icon_prefix'],
+            'icon_template'                         => $config['icon_template'],
+            'icon_short_methods_enable'             => $config['icon_short_methods']['enable'],
+            'icon_short_methods_fontawesome_prefix' => $config['icon_short_methods']['fontawesome_prefix'],
+            'icon_short_methods_glyphicon_prefix'   => $config['icon_short_methods']['glyphicon_prefix']
+        ));
     }
 
     /**
